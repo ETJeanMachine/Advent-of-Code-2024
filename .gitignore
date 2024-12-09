@@ -1,0 +1,4 @@
+/target
+.vscode
+/input/*example.txt
+.DS_Store
