@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
@@ -7,8 +8,8 @@ fn main() {
 }
 
 fn day1() -> i32 {
-    let mut list1 = vec![];
-    let mut list2 = vec![];
+    let mut left = vec![];
+    let mut right = HashMap::new();
     if let Ok(lines) = read_lines("./input/day1.txt") {
         // Consumes the iterator, returns an (Optional) String
         for line in lines.map_while(Result::ok) {
@@ -17,16 +18,18 @@ fn day1() -> i32 {
             if let (Some(s1), Some(s2)) = (split.next(), split.next()) {
                 let n = s1.parse::<i32>().unwrap();
                 let m = s2.parse::<i32>().unwrap();
-                list1.push(n);
-                list2.push(m);
+                left.push(n);
+                if let Some(i) = right.get_mut(&m) {
+                    *i += 1;
+                } else {
+                    right.insert(m, 1);
+                }
             }
         }
     }
-    list1.sort();
-    list2.sort();
     let mut sum = 0;
-    for i in 0..list1.len() {
-        sum += (list1[i] - list2[i]).abs();
+    for n in left {
+        sum += n * right.get(&n).unwrap_or(&0);
     }
     sum
 }
