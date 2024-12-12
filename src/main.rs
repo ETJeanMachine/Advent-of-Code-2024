@@ -40,9 +40,9 @@ fn day2() -> i32 {
     if let Ok(lines) = read_lines("./input/day2.txt") {
         // Consumes the iterator, returns an (Optional) String
         for line in lines.map_while(Result::ok) {
-            let mut split = line.split_whitespace();
+            let split = line.split_whitespace();
             reports.push(vec![]);
-            while let Some(s) = split.next() {
+            for s in split {
                 let n = s.parse::<i32>().unwrap();
                 reports.last_mut().unwrap().push(n);
             }
@@ -50,16 +50,29 @@ fn day2() -> i32 {
     }
     let mut safe_count = reports.len() as i32;
     for v in reports {
-        let mut dir = 0;
-        for i in 0..v.len() - 1 {
-            let step = v[i + 1] - v[i];
-            // setting the initial direction based on the first step
-            if dir == 0 {
-                dir = step.signum();
+        let slopes: Vec<i32> = v.windows(2).map(|n| n[1] - n[0]).collect();
+        let sign = slopes.iter().sum::<i32>().signum();
+        let valid = |n: i32| -> bool { n.signum() == sign && (1..=3).contains(&n.abs()) };
+        let problem_idx = slopes
+            .iter()
+            .enumerate()
+            .find(|(_, &n)| !valid(n))
+            .map(|(i, _)| i);
+        if let Some(i) = problem_idx {
+            let mut shift_right = slopes.clone();
+            let right_step = shift_right.remove(i);
+            if i < shift_right.len() {
+                shift_right[i] += right_step;
             }
-            if dir != step.signum() || step.abs() > 3 || step.abs() == 0 {
+            let mut shift_left = slopes.clone();
+            let left_step = shift_left.remove(i);
+            if i > 0 {
+                shift_left[i - 1] += left_step;
+            }
+            let right_problem = shift_right.iter().find(|&&n| !valid(n));
+            let left_problem = shift_left.iter().find(|&&n| !valid(n));
+            if right_problem.is_some() && left_problem.is_some() {
                 safe_count -= 1;
-                break;
             }
         }
     }
